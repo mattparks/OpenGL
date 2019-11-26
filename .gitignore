@@ -1,6 +1,8 @@
 packages/
 bin/
 obj/
+Generator/bin/*
+Generator/obj/*
 .vs/
 # macOS leaves these ._ files around
 ._*
