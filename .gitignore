@@ -1,0 +1,17 @@
+packages/
+bin/
+obj/
+.vs/
+# macOS leaves these ._ files around
+._*
+*.obj
+*.log
+*.tlog
+*.pch
+*.ipch
+*.cache
+*.pdb
+*.user
+*.metagen
+
+.vs
