@@ -20,52 +20,48 @@ namespace Generator {
 		}
 
 		static void Process(Registry registry, string api, double min, double max) {
-			var combinedFeature = new RegistryFeature {
-				Api = api,
-				Number = max,
-				Requires = new List<RegistryRequires>(),
-				Removes = new List<RegistryRequires>()
-			};
+			var featureSet = new RegistryFeature { Api = api, Number = max };
 			foreach (var feature in registry.Features.Where(f => f.Api == api && f.Number >= min && f.Number <= max)) {
-				combinedFeature.Requires.AddRange(feature.Requires);
-				combinedFeature.Removes.AddRange(feature.Removes);
+				featureSet.Requires.AddRange(feature.Requires);
+				featureSet.Removes.AddRange(feature.Removes);
 				// Use the last feature name as the combined name.
-				combinedFeature.Name = feature.Name;
+				featureSet.Name = feature.Name;
 			}
 
-			// TODO: This can be simplified:
+			foreach (var groups in registry.Groups) {
+				foreach (var group in groups.Groups) {
+					Console.WriteLine($"enum {group.Name} {{");
 
-			var enums = new List<RegistryRequires.Enum>();
-			combinedFeature.Requires.ForEach(r => enums.AddRange(r.Enums));
-			foreach (var @enum in enums) {
-				RegistryEnums.Enum enumsEnum = null;
-				registry.Enums.ForEach(e => e.Enums.ForEach(i => {
-					if (i.Name == @enum.Name)
-						enumsEnum = i;
-				}));
-				Console.WriteLine($"#define {@enum.Name} {enumsEnum?.Value}");
+					foreach (var @enum in group.Enums) {
+						Console.WriteLine($"\t{@enum.Name},");
+					}
+
+					Console.WriteLine($"}}");
+				}
 			}
 
-			var commands = new List<RegistryRequires.Command>();
-			combinedFeature.Requires.ForEach(r => commands.AddRange(r.Commands));
-			foreach (var command in commands) {
-				RegistryCommandsCommand commandsCommand = null;
-				registry.Commands.ForEach(e => e.Command.ForEach(i => {
-					// Command can only have one func proto.
-					if (i.Prototype.Name == command.Name)
-						commandsCommand = i;
-				}));
+			foreach (var enums in registry.Enums) {
+				foreach (var @enum in enums.Enums) {
+					if (featureSet.Requires.Any(r => r.Enums.Any(i => i.Name == @enum.Name))) {
+						Console.WriteLine($"#define {@enum.Name} {@enum.Value}");
+						if (!string.IsNullOrEmpty(@enum.Alias))
+							Console.WriteLine($"#define {@enum.Alias} {@enum.Name}");
+					}
+				}
+			}
 
-				var commandProto = commandsCommand?.Prototype;
-				if (commandProto != null) {
-					var procName = $"PFN{commandProto.Name.ToUpper()}PROC";
-					Console.Write($"typedef {commandProto.GlType()}(APIENTRYP {procName})(");
-					Console.Write(string.Join(", ", commandsCommand.Params.Select(x =>
-						$"{x.GlType()}{x.Name}")
-					));
-					Console.Write(");\n");
-					Console.WriteLine($"GLAPI {procName} impl_{commandProto.Name};");
-					Console.WriteLine($"#define {commandProto.Name} impl_{commandProto.Name};");
+			foreach (var commands in registry.Commands) {
+				foreach (var command in commands.Commands) {
+					if (featureSet.Requires.Any(r => r.Commands.Any(i => i.Name == command.Prototype.Name))) {
+						var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
+						Console.Write($"typedef {command.Prototype.GlType()}(APIENTRYP {procName})(");
+						Console.Write(string.Join(", ", command.Params.Select(x =>
+							$"{x.GlType()}{x.Name}")
+						));
+						Console.Write(");\n");
+						Console.WriteLine($"GLAPI {procName} impl_{command.Prototype.Name};");
+						Console.WriteLine($"#define {command.Prototype.Name} impl_{command.Prototype.Name}");
+					}
 				}
 			}
 		}
