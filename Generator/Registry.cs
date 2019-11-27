@@ -62,6 +62,9 @@ namespace Generator {
 
 			[XmlAttribute("requires")]
 			public string Requires { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		[XmlElement("type")]
@@ -75,6 +78,9 @@ namespace Generator {
 
 			[XmlAttribute("name")]
 			public string Name { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class GroupKeyedCollection : KeyedCollection<string, Group> {
@@ -101,6 +107,9 @@ namespace Generator {
 
 			[XmlAttribute("api")]
 			public string Api { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class EnumKeyedCollection : KeyedCollection<string, Enum> {
@@ -116,6 +125,9 @@ namespace Generator {
 
 			[XmlAttribute("vendor")]
 			public string Vendor { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		[XmlElement("enum", IsNullable = false)]
@@ -141,6 +153,9 @@ namespace Generator {
 
 		[XmlAttribute("end")]
 		public string End { get; set; }
+
+		[XmlElement("comment")]
+		public string Comment { get; set; }
 	}
 
 	public class RegistryCommands {
@@ -185,6 +200,9 @@ namespace Generator {
 
 				[XmlAttribute("name")]
 				public string Name { get; set; }
+
+				[XmlElement("comment")]
+				public string Comment { get; set; }
 			}
 
 			public class Alias {
@@ -211,6 +229,9 @@ namespace Generator {
 
 			[XmlElement("vecequiv")]
 			public Vecequiv VectorEquiv { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class CommandKeyedCollection : KeyedCollection<string, Command> {
@@ -255,6 +276,9 @@ namespace Generator {
 
 			[XmlAttribute("supported")]
 			public string Supported { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class ExtensionKeyedCollection : KeyedCollection<string, Extension> {
@@ -269,16 +293,25 @@ namespace Generator {
 		public class EnumName {
 			[XmlAttribute("name")]
 			public string Name { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class CommandName {
 			[XmlAttribute("name")]
 			public string Name { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		public class TypeName {
 			[XmlAttribute("name")]
 			public string Name { get; set; }
+
+			[XmlElement("comment")]
+			public string Comment { get; set; }
 		}
 
 		[XmlElement("enum")]
@@ -295,5 +328,8 @@ namespace Generator {
 
 		[XmlAttribute("api")]
 		public string Api { get; set; }
+
+		[XmlElement("comment")]
+		public string Comment { get; set; }
 	}
 }

@@ -61,17 +61,17 @@ namespace Generator {
 				headerDefs += "\n/* SECTION: GL command definitions. */\n";
 				foreach (var commandName in feature.Requires.SelectMany(requires => requires.CommandNames)) {
 					var command = registry.Find(commandName);
+					var returnType = GlType(command.Prototype).TrimEnd();
 					var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
-					var implName = $"impl_{command.Prototype.Name}";
 					var paramsString = string.Join(", ", command.Params.Select(param =>
 						$"{GlType(param)} {param.Name}")
 					);
-					headerDefs += $"typedef {GlType(command.Prototype)}(GL_APIENTRYP {procName})({paramsString});\n";
-					headerDefs += $"GL_APICALL {procName} {implName};\n";
-					headerDefs += $"#define {command.Prototype.Name} {implName}\n";
+					headerDefs += $"typedef {returnType}(GL_APIENTRYP {procName})({paramsString});\n";
+					headerDefs += $"GL_APICALL {procName} {command.Prototype.Name};\n";
 
-					sourcePFN += $"{procName} {implName} = NULL;\n";
-					loadProcs += $"\t{implName} = ({procName})proc(\"{command.Prototype.Name}\");\n";
+					sourcePFN += $"{procName} {command.Prototype.Name} = nullptr;\n";
+
+					loadProcs += $"\t{command.Prototype.Name} = reinterpret_cast<{procName}>(proc(\"{command.Prototype.Name}\"));\n";
 				}
 
 				headerDefs += $"#endif /* {feature.Name} */\n";
