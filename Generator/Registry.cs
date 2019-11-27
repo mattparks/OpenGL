@@ -21,13 +21,15 @@ namespace Generator {
 		[XmlElement("commands")]
 		public List<RegistryCommands> Commands { get; set; }
 
-		[XmlElement("feature")]
-		public RegistryFeatureKeyedCollection Features { get; set; } = new RegistryFeatureKeyedCollection();
+		[XmlElement("feature", IsNullable = false)]
+		public RegistryFeatureKeyedCollection Features { get; set; }
 
 		[XmlElement("extensions")]
 		public List<RegistryExtensions> Extensions { get; set; }
 
 #region Methods
+
+		// Not the fastest data access methods, but it's clean and very expandable.
 		
 		public RegistryEnums.Enum Find(RegistryRequires.EnumName enumName) {
 			return Enums.SelectMany(enums => enums.Enums).FirstOrDefault(@enum => @enum.Name == enumName.Name);
@@ -76,8 +78,8 @@ namespace Generator {
 			protected override string GetKeyForItem(Group item) => item.Name;
 		}
 
-		[XmlElement("group")]
-		public GroupKeyedCollection Groups { get; set; } = new GroupKeyedCollection();
+		[XmlElement("group", IsNullable = false)]
+		public GroupKeyedCollection Groups { get; set; }
 	}
 
 	public class RegistryEnums {
@@ -113,8 +115,8 @@ namespace Generator {
 			public string Vendor { get; set; }
 		}
 
-		[XmlElement("enum")]
-		public EnumKeyedCollection Enums { get; set; } = new EnumKeyedCollection();
+		[XmlElement("enum", IsNullable = false)]
+		public EnumKeyedCollection Enums { get; set; }
 
 		[XmlElement("unused")]
 		public List<Unused> NotUsed { get; set; }
@@ -212,19 +214,19 @@ namespace Generator {
 			protected override string GetKeyForItem(Command item) => item.Prototype.Name;
 		}
 
-		[XmlElement("command")]
-		public CommandKeyedCollection Commands { get; set; } = new CommandKeyedCollection();
+		[XmlElement("command", IsNullable = false)]
+		public CommandKeyedCollection Commands { get; set; }
 
 		[XmlAttribute("namespace")]
 		public string Namespace { get; set; }
 	}
 
 	public class RegistryFeature {
-		[XmlElement("require")]
-		public List<RegistryRequires> Requires { get; set; } = new List<RegistryRequires>();
+		[XmlElement("require", IsNullable = false)]
+		public List<RegistryRequires> Requires { get; set; }
 
-		[XmlElement("remove")]
-		public List<RegistryRequires> Removes { get; set; } = new List<RegistryRequires>();
+		[XmlElement("remove", IsNullable = false)]
+		public List<RegistryRequires> Removes { get; set; }
 
 		[XmlAttribute("api")]
 		public string Api { get; set; }
@@ -256,8 +258,8 @@ namespace Generator {
 			protected override string GetKeyForItem(Extension item) => item.Name;
 		}
 
-		[XmlElement("extension")]
-		public ExtensionKeyedCollection Extensions { get; set; } = new ExtensionKeyedCollection();
+		[XmlElement("extension", IsNullable = false)]
+		public ExtensionKeyedCollection Extensions { get; set; } 
 	}
 
 	public class RegistryRequires {
