@@ -12,7 +12,7 @@ namespace Generator {
 		public void AppendFeature(Registry registry, RegistryFeature feature) {
 			foreach (var enums in registry.Enums) {
 				foreach (var @enum in enums.Enums) {
-					if (feature.Requires.Any(r => r.Enums.Any(i => i.Name == @enum.Name))) {
+					if (feature.Requires.Any(r => r.EnumNames.Any(i => i.Name == @enum.Name))) {
 						Enums.Add(@enum);
 					}
 				}
@@ -20,7 +20,7 @@ namespace Generator {
 
 			foreach (var commands in registry.Commands) {
 				foreach (var command in commands.Commands) {
-					if (feature.Requires.Any(r => r.Commands.Any(i => i.Name == command.Prototype.Name))) {
+					if (feature.Requires.Any(r => r.CommandNames.Any(i => i.Name == command.Prototype.Name))) {
 						Commands.Add(command);
 					}
 				}
@@ -63,11 +63,10 @@ namespace Generator {
 			}
 			foreach (var command in featureSet.Commands) {
 				var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
-				Console.Write($"typedef {command.Prototype.GlType()}(APIENTRYP {procName})(");
-				Console.Write(string.Join(", ", command.Params.Select(param =>
+				var paramsString = string.Join(", ", command.Params.Select(param =>
 					$"{param.GlType()} {param.Name}")
-				));
-				Console.Write(");\n");
+				);
+				Console.WriteLine($"\ntypedef {command.Prototype.GlType()}(APIENTRYP {procName})({paramsString});");
 				Console.WriteLine($"GLAPI {procName} impl_{command.Prototype.Name};");
 				Console.WriteLine($"#define {command.Prototype.Name} impl_{command.Prototype.Name}");
 			}

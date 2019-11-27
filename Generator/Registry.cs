@@ -21,7 +21,7 @@ namespace Generator {
 		public List<RegistryCommands> Commands { get; set; }
 
 		[XmlElement("feature")]
-		public List<RegistryFeature> Features { get; set; }
+		public RegistryFeatureKeyedCollection Features { get; set; } = new RegistryFeatureKeyedCollection();
 
 		[XmlElement("extensions")]
 		public List<RegistryExtensions> Extensions { get; set; }
@@ -237,9 +237,9 @@ namespace Generator {
 		public double Number { get; set; }
 	}
 
-	//public class RegistryFeatureKeyedCollection : KeyedCollection<string, RegistryFeature> {
-	//	protected override string GetKeyForItem(RegistryFeature item) => item.Name;
-	//}
+	public class RegistryFeatureKeyedCollection : KeyedCollection<string, RegistryFeature> {
+		protected override string GetKeyForItem(RegistryFeature item) => item.Name;
+	}
 
 	public class RegistryExtensions {
 		public class Extension {
@@ -262,32 +262,19 @@ namespace Generator {
 	}
 
 	public class RegistryRequires {
-		[XmlType(Namespace = "RegistryRequires")]
-		public class Enum {
-			[XmlAttribute("name")]
-			public string Name { get; set; }
-		}
-
-		[XmlType(Namespace = "RegistryRequires")]
-		public class Command {
-			[XmlAttribute("name")]
-			public string Name { get; set; }
-		}
-
-		[XmlType(Namespace = "RegistryRequires")]
-		public class Type {
+		public class ObjectName {
 			[XmlAttribute("name")]
 			public string Name { get; set; }
 		}
 
 		[XmlElement("enum")]
-		public List<Enum> Enums { get; set; }
+		public List<ObjectName> EnumNames { get; set; }
 
 		[XmlElement("command")]
-		public List<Command> Commands { get; set; }
+		public List<ObjectName> CommandNames { get; set; }
 
 		[XmlElement("type")]
-		public List<Type> Types { get; set; }
+		public List<ObjectName> TypeNames { get; set; }
 
 		[XmlAttribute("profile")]
 		public string Profile { get; set; }
