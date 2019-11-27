@@ -55,6 +55,9 @@ namespace Generator {
 			public object ApiEntry { get; set; }
 
 			[XmlAttribute("name")]
+			public string Tag { get; set; }
+
+			[XmlElement("name")]
 			public string Name { get; set; }
 
 			[XmlAttribute("requires")]
