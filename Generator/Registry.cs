@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Xml.Serialization;
 
 namespace Generator {
@@ -47,9 +48,9 @@ namespace Generator {
 	}
 
 	public class RegistryGroups {
-		[XmlType(Namespace = "RegistryGroups")]
+		//[XmlType(Namespace = "RegistryGroups")]
 		public class Group {
-			[XmlType(Namespace = "RegistryGroup")]
+			[XmlType(Namespace = "Group")]
 			public class Enum {
 				[XmlAttribute("name")]
 				public string Name { get; set; }
@@ -62,8 +63,12 @@ namespace Generator {
 			public string Name { get; set; }
 		}
 
+		public class GroupKeyedCollection : KeyedCollection<string, Group> {
+			protected override string GetKeyForItem(Group item) => item.Name;
+		}
+
 		[XmlElement("group")]
-		public List<Group> Groups { get; set; }
+		public GroupKeyedCollection Groups { get; set; } = new GroupKeyedCollection();
 	}
 
 	public class RegistryEnums {
@@ -85,6 +90,10 @@ namespace Generator {
 			public string Api { get; set; }
 		}
 
+		public class EnumKeyedCollection : KeyedCollection<string, Enum> {
+			protected override string GetKeyForItem(Enum item) => item.Name;
+		}
+
 		[XmlType(Namespace = "RegistryEnums")]
 		public class Unused {
 			[XmlAttribute("start")]
@@ -98,7 +107,7 @@ namespace Generator {
 		}
 
 		[XmlElement("enum")]
-		public List<Enum> Enums { get; set; }
+		public EnumKeyedCollection Enums { get; set; } = new EnumKeyedCollection();
 
 		[XmlElement("unused")]
 		public List<Unused> NotUsed { get; set; }
@@ -138,7 +147,7 @@ namespace Generator {
 				public string Name { get; set; }
 
 				public string GlType() {
-					return !string.IsNullOrEmpty(PointerType) ? PointerType + " " : Text[0];
+					return !string.IsNullOrEmpty(PointerType) ? PointerType : Text[0];
 				}
 			}
 
@@ -159,7 +168,7 @@ namespace Generator {
 				public string Name { get; set; }
 
 				public string GlType() {
-					return !string.IsNullOrEmpty(PointerType) ? PointerType + " " : Text[0];
+					return !string.IsNullOrEmpty(PointerType) ? PointerType : Text[0];
 				}
 			}
 
@@ -200,8 +209,12 @@ namespace Generator {
 			public Vecequiv VectorEquiv { get; set; }
 		}
 
+		public class CommandKeyedCollection : KeyedCollection<string, Command> {
+			protected override string GetKeyForItem(Command item) => item.Prototype.Name;
+		}
+
 		[XmlElement("command")]
-		public List<Command> Commands { get; set; }
+		public CommandKeyedCollection Commands { get; set; } = new CommandKeyedCollection();
 
 		[XmlAttribute("namespace")]
 		public string Namespace { get; set; }
@@ -224,6 +237,10 @@ namespace Generator {
 		public double Number { get; set; }
 	}
 
+	//public class RegistryFeatureKeyedCollection : KeyedCollection<string, RegistryFeature> {
+	//	protected override string GetKeyForItem(RegistryFeature item) => item.Name;
+	//}
+
 	public class RegistryExtensions {
 		public class Extension {
 			[XmlElement("require")]
@@ -236,8 +253,12 @@ namespace Generator {
 			public string Supported { get; set; }
 		}
 
+		public class ExtensionKeyedCollection : KeyedCollection<string, Extension> {
+			protected override string GetKeyForItem(Extension item) => item.Name;
+		}
+
 		[XmlElement("extension")]
-		public List<Extension> Extensions { get; set; }
+		public ExtensionKeyedCollection Extensions { get; set; } = new ExtensionKeyedCollection();
 	}
 
 	public class RegistryRequires {

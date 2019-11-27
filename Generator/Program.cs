@@ -1,11 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Xml.Serialization;
 
 namespace Generator {
+	class FeatureSet {
+		public RegistryEnums.EnumKeyedCollection Enums { get; set; } = new RegistryEnums.EnumKeyedCollection();
+		public RegistryCommands.CommandKeyedCollection Commands { get; set; } = new RegistryCommands.CommandKeyedCollection();
+
+		public void AppendFeature(Registry registry, RegistryFeature feature) {
+			foreach (var enums in registry.Enums) {
+				foreach (var @enum in enums.Enums) {
+					if (feature.Requires.Any(r => r.Enums.Any(i => i.Name == @enum.Name))) {
+						Enums.Add(@enum);
+					}
+				}
+			}
+
+			foreach (var commands in registry.Commands) {
+				foreach (var command in commands.Commands) {
+					if (feature.Requires.Any(r => r.Commands.Any(i => i.Name == command.Prototype.Name))) {
+						Commands.Add(command);
+					}
+				}
+			}
+		}
+	}
+
 	class Program {
 		static void Main(string[] args) {
 			Download();
@@ -20,49 +42,34 @@ namespace Generator {
 		}
 
 		static void Process(Registry registry, string api, double min, double max) {
-			var featureSet = new RegistryFeature { Api = api, Number = max };
+			var featureSet = new FeatureSet();
 			foreach (var feature in registry.Features.Where(f => f.Api == api && f.Number >= min && f.Number <= max)) {
-				featureSet.Requires.AddRange(feature.Requires);
-				featureSet.Removes.AddRange(feature.Removes);
-				// Use the last feature name as the combined name.
-				featureSet.Name = feature.Name;
+				featureSet.AppendFeature(registry, feature);
 			}
+			Process(featureSet);
+		}
 
-			foreach (var groups in registry.Groups) {
-				foreach (var group in groups.Groups) {
-					Console.WriteLine($"enum {group.Name} {{");
+		static void Process(Registry registry, string api, double version) {
+			var featureSet = new FeatureSet();
+			var feature = registry.Features.Find(x => x.Api == api && x.Number == version);
+			featureSet.AppendFeature(registry, feature);
+			Process(featureSet);
 
-					foreach (var @enum in group.Enums) {
-						Console.WriteLine($"\t{@enum.Name},");
-					}
+		}
 
-					Console.WriteLine($"}}");
-				}
+		static void Process(FeatureSet featureSet) {
+			foreach (var @enum in featureSet.Enums) {
+				Console.WriteLine($"#define {@enum.Name} {@enum.Value}");
 			}
-
-			foreach (var enums in registry.Enums) {
-				foreach (var @enum in enums.Enums) {
-					if (featureSet.Requires.Any(r => r.Enums.Any(i => i.Name == @enum.Name))) {
-						Console.WriteLine($"#define {@enum.Name} {@enum.Value}");
-						if (!string.IsNullOrEmpty(@enum.Alias))
-							Console.WriteLine($"#define {@enum.Alias} {@enum.Name}");
-					}
-				}
-			}
-
-			foreach (var commands in registry.Commands) {
-				foreach (var command in commands.Commands) {
-					if (featureSet.Requires.Any(r => r.Commands.Any(i => i.Name == command.Prototype.Name))) {
-						var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
-						Console.Write($"typedef {command.Prototype.GlType()}(APIENTRYP {procName})(");
-						Console.Write(string.Join(", ", command.Params.Select(x =>
-							$"{x.GlType()}{x.Name}")
-						));
-						Console.Write(");\n");
-						Console.WriteLine($"GLAPI {procName} impl_{command.Prototype.Name};");
-						Console.WriteLine($"#define {command.Prototype.Name} impl_{command.Prototype.Name}");
-					}
-				}
+			foreach (var command in featureSet.Commands) {
+				var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
+				Console.Write($"typedef {command.Prototype.GlType()}(APIENTRYP {procName})(");
+				Console.Write(string.Join(", ", command.Params.Select(param =>
+					$"{param.GlType()} {param.Name}")
+				));
+				Console.Write(");\n");
+				Console.WriteLine($"GLAPI {procName} impl_{command.Prototype.Name};");
+				Console.WriteLine($"#define {command.Prototype.Name} impl_{command.Prototype.Name}");
 			}
 		}
 
