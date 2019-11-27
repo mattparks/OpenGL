@@ -1,6 +1,8 @@
 packages/
 bin/
 obj/
+Debug/
+Release/
 Generator/bin/*
 Generator/obj/*
 .vs/

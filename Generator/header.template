@@ -1,0 +1,75 @@
+%%GENERATOR%%
+
+%%LICENCE%%
+
+#ifndef __%%LOWERNAME%%_h_
+#define __%%LOWERNAME%%_h_
+
+#ifdef __gl_h_
+#error OpenGL header already included, remove this include
+#endif
+#define __gl_h_
+
+#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#define APIENTRY __stdcall
+#endif
+
+#ifndef APIENTRY
+#define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
+#endif
+
+#ifndef GLAPIENTRY
+#define GLAPIENTRY APIENTRY
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef GLAPI
+# if defined(GLAPI_EXPORT)
+#  if defined(_WIN32) || defined(__CYGWIN__)
+#   if defined(GLAPI_EXPORT_BUILD)
+#    if defined(__GNUC__)
+#     define GLAPI __attribute__ ((dllexport)) extern
+#    else
+#     define GLAPI __declspec(dllexport) extern
+#    endif
+#   else
+#    if defined(__GNUC__)
+#     define GLAPI __attribute__ ((dllimport)) extern
+#    else
+#     define GLAPI __declspec(dllimport) extern
+#    endif
+#   endif
+#  elif defined(__GNUC__) && defined(GLAPI_EXPORT_BUILD)
+#   define GLAPI __attribute__ ((visibility ("default"))) extern
+#  else
+#   define GLAPI extern
+#  endif
+# else
+#  define GLAPI extern
+# endif
+#endif
+
+typedef void GLvoid;
+typedef unsigned int GLenum;
+#include <KHR/khrplatform.h>
+typedef khronos_float_t GLfloat;
+typedef int GLint;
+typedef int GLsizei;
+typedef unsigned int GLbitfield;
+typedef double GLdouble;
+typedef unsigned int GLuint;
+typedef unsigned char GLboolean;
+typedef khronos_uint8_t GLubyte;
+
+%%HEADER_BODY%%
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __%%LOWERNAME%%_h_ */
