@@ -1,0 +1,78 @@
+/*
+
+%%GENERATOR%%
+
+------------------------------------------------------------------------
+%%LICENSE%%
+*/
+
+#include <GL/OpenGL.h>
+
+namespace %%name%% {
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <Windows.h>
+
+static HMODULE libGL;
+
+typedef void* (GL_APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
+static PFNWGLGETPROCADDRESSPROC_PRIVATE %%name%%GetProcAddressPtr;
+
+static int open_libgl() {
+    libGL = LoadLibraryW(L"opengl32.dll");
+    if (libGL != NULL) {
+        void (* tmp)(void);
+        tmp = (void(*)(void)) GetProcAddress(libGL, "wglGetProcAddress");
+        %%name%%GetProcAddressPtr = (PFNWGLGETPROCADDRESSPROC_PRIVATE) tmp;
+        return %%name%%GetProcAddressPtr != NULL;
+    }
+
+    return 0;
+}
+
+static void close_libgl() {
+    if (libGL != NULL) {
+        FreeLibrary((HMODULE) libGL);
+        libGL = NULL;
+    }
+}
+
+static void* get_proc(const char *namez) {
+    void* result = NULL;
+    if (libGL == NULL) return NULL;
+
+    if (result == NULL) {
+        result = (void*)GetProcAddress((HMODULE) libGL, namez);
+    }
+
+    return result;
+}
+
+#endif
+
+int %%name%%Init() {
+    int status = 0;
+
+	if (open_libgl()) {
+		status = %%name%%Init(&get_proc);
+		close_libgl();
+	}
+
+	return status;
+}
+
+static void load_procs(%%NAME%%loadproc proc);
+
+int %%name%%Init(%%NAME%%loadproc proc) {
+	load_procs(proc);
+	return 0;
+}
+
+%%SOURCE_PFN%%
+
+void load_procs(%%NAME%%loadproc proc) {
+%%LOADPROCS%%
+}
+}

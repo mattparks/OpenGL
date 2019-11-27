@@ -1,12 +1,13 @@
 #include <iostream>
 
 #include <GL/OpenGL.h>
-using namespace gl;
+using namespace ogl;
 
 int main() {
-	std::cout << glInit() << "\n";
-	std::cout << (strstr(reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS)), "GL_EXT_framebuffer_object") != nullptr);
-	auto ptr = glGetString(GL_EXTENSIONS);
+	std::cout << oglInit() << "\n";
+	auto getString = glGetString;
+	auto result = reinterpret_cast<const char *>(getString(GL_EXTENSIONS));
+	std::cout << (strstr(result, "GL_EXT_framebuffer_object") != nullptr);
 	std::cout << "Hello World!\n";
 	return 0;
 }

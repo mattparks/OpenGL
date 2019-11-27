@@ -1,6 +1,10 @@
-%%LICENSE%%
+/*
 
 %%GENERATOR%%
+
+------------------------------------------------------------------------
+%%LICENSE%%
+*/
 
 #pragma once
 
@@ -19,15 +23,15 @@
 #define GL_APICALL extern
 #endif
 
-namespace %%SHORTNAME%% {
+namespace %%name%% {
 /* SECTION: GL type definitions. */
 %%TYPES%%
 
 /* Loader functions */
-typedef void* (* GLADloadproc)(const char *name);
+typedef void* (* %%NAME%%loadproc)(const char *name);
 
-int %%SHORTNAME%%Init();
-int %%SHORTNAME%%Init(GLADloadproc);
+int %%name%%Init();
+int %%name%%Init(%%NAME%%loadproc);
 
 /* SECTION: GL API interface definitions. */
 %%HEADER_BODY%%
