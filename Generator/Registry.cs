@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace Generator {
-	[XmlRoot("registry", Namespace = "", IsNullable = false)]
+	[XmlRoot("registry", IsNullable = false)]
 	public class Registry {
 		[XmlElement("comment")]
 		public string Comment { get; set; }
@@ -25,10 +26,25 @@ namespace Generator {
 
 		[XmlElement("extensions")]
 		public List<RegistryExtensions> Extensions { get; set; }
+
+#region Methods
+		
+		public RegistryEnums.Enum Find(RegistryRequires.EnumName enumName) {
+			return Enums.SelectMany(enums => enums.Enums).FirstOrDefault(@enum => @enum.Name == enumName.Name);
+		}
+
+		public RegistryGroups.Group Find(string groupName) {
+			return Groups.SelectMany(groups => groups.Groups).FirstOrDefault(group => group.Name == groupName);
+		}
+
+		public RegistryCommands.Command Find(RegistryRequires.CommandName commandName) {
+			return Commands.SelectMany(commands => commands.Commands).FirstOrDefault(command => command.Prototype.Name == commandName.Name);
+		}
+
+#endregion
 	}
 
 	public class RegistryTypes {
-		[XmlType(Namespace = "RegistryTypes")]
 		public class Type {
 			[XmlText]
 			public List<string> Text { get; set; }
@@ -48,16 +64,9 @@ namespace Generator {
 	}
 
 	public class RegistryGroups {
-		//[XmlType(Namespace = "RegistryGroups")]
 		public class Group {
-			[XmlType(Namespace = "Group")]
-			public class Enum {
-				[XmlAttribute("name")]
-				public string Name { get; set; }
-			}
-
 			[XmlElement("enum")]
-			public List<Enum> Enums { get; set; }
+			public List<RegistryRequires.EnumName> EnumNames { get; set; }
 
 			[XmlAttribute("name")]
 			public string Name { get; set; }
@@ -72,7 +81,6 @@ namespace Generator {
 	}
 
 	public class RegistryEnums {
-		[XmlType(Namespace = "RegistryEnums")]
 		public class Enum {
 			[XmlAttribute("value")]
 			public string Value { get; set; }
@@ -94,7 +102,6 @@ namespace Generator {
 			protected override string GetKeyForItem(Enum item) => item.Name;
 		}
 
-		[XmlType(Namespace = "RegistryEnums")]
 		public class Unused {
 			[XmlAttribute("start")]
 			public string Start { get; set; }
@@ -138,17 +145,13 @@ namespace Generator {
 				public List<string> Text { get; set; }
 
 				[XmlAttribute("group")]
-				public string Group { get; set; }
+				public string GroupName { get; set; }
 
 				[XmlElement("ptype")]
 				public string PointerType { get; set; }
 
 				[XmlElement("name")]
 				public string Name { get; set; }
-
-				public string GlType() {
-					return !string.IsNullOrEmpty(PointerType) ? PointerType : Text[0];
-				}
 			}
 
 			public class Param {
@@ -156,7 +159,7 @@ namespace Generator {
 				public List<string> Text { get; set; }
 
 				[XmlAttribute("group")]
-				public string Group { get; set; }
+				public string GroupName { get; set; }
 
 				[XmlAttribute("len")]
 				public string Length { get; set; }
@@ -166,10 +169,6 @@ namespace Generator {
 
 				[XmlElement("name")]
 				public string Name { get; set; }
-
-				public string GlType() {
-					return !string.IsNullOrEmpty(PointerType) ? PointerType : Text[0];
-				}
 			}
 
 			public class Glx {
@@ -262,19 +261,29 @@ namespace Generator {
 	}
 
 	public class RegistryRequires {
-		public class ObjectName {
+		public class EnumName {
+			[XmlAttribute("name")]
+			public string Name { get; set; }
+		}
+
+		public class CommandName {
+			[XmlAttribute("name")]
+			public string Name { get; set; }
+		}
+
+		public class TypeName {
 			[XmlAttribute("name")]
 			public string Name { get; set; }
 		}
 
 		[XmlElement("enum")]
-		public List<ObjectName> EnumNames { get; set; }
+		public List<EnumName> EnumNames { get; set; }
 
 		[XmlElement("command")]
-		public List<ObjectName> CommandNames { get; set; }
+		public List<CommandName> CommandNames { get; set; }
 
 		[XmlElement("type")]
-		public List<ObjectName> TypeNames { get; set; }
+		public List<TypeName> TypeNames { get; set; }
 
 		[XmlAttribute("profile")]
 		public string Profile { get; set; }
