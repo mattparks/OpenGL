@@ -2,59 +2,25 @@
 
 %%GENERATOR%%
 
-#ifndef __%%LOWERNAME%%_h_
-#define __%%LOWERNAME%%_h_
+#pragma once
 
 #ifdef __gl_h_
 #error OpenGL header already included, remove this include
 #endif
 #define __gl_h_
 
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
-#define APIENTRY __stdcall
+#ifndef GL_APIENTRY
+#define GL_APIENTRY
+#endif
+#ifndef GL_APIENTRYP
+#define GL_APIENTRYP GL_APIENTRY *
+#endif
+#ifndef GL_APICALL
+#define GL_APICALL extern
 #endif
 
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
-
-#ifndef GLAPIENTRY
-#define GLAPIENTRY APIENTRY
-#endif
-
-#ifdef __cplusplus
-//extern "C" {
-#endif
-
-#ifndef GLAPI
-# if defined(GLAPI_EXPORT)
-#  if defined(_WIN32) || defined(__CYGWIN__)
-#   if defined(GLAPI_EXPORT_BUILD)
-#    if defined(__GNUC__)
-#     define GLAPI __attribute__ ((dllexport)) extern
-#    else
-#     define GLAPI __declspec(dllexport) extern
-#    endif
-#   else
-#    if defined(__GNUC__)
-#     define GLAPI __attribute__ ((dllimport)) extern
-#    else
-#     define GLAPI __declspec(dllimport) extern
-#    endif
-#   endif
-#  elif defined(__GNUC__) && defined(GLAPI_EXPORT_BUILD)
-#   define GLAPI __attribute__ ((visibility ("default"))) extern
-#  else
-#   define GLAPI extern
-#  endif
-# else
-#  define GLAPI extern
-# endif
-#endif
-
+namespace %%SHORTNAME%% {
+/* SECTION: GL type definitions. */
 %%TYPES%%
 
 /* Loader functions */
@@ -63,10 +29,8 @@ typedef void* (* GLADloadproc)(const char *name);
 int %%SHORTNAME%%Init();
 int %%SHORTNAME%%Init(GLADloadproc);
 
-/* OpenGL functions */
+/* SECTION: GL API interface definitions. */
 %%HEADER_BODY%%
-#ifdef __cplusplus
-//}
-#endif
 
-#endif /* __%%LOWERNAME%%_h_ */
+/* SECTION: OpenGL / OpenGL ES extension interface definitions. */
+}

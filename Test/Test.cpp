@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <GL/OpenGL.h>
+using namespace gl;
 
 int main() {
 	std::cout << glInit() << "\n";

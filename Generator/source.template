@@ -4,6 +4,7 @@
 
 #include <GL/OpenGL.h>
 
+namespace %%SHORTNAME%% {
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
@@ -12,7 +13,7 @@
 
 static HMODULE libGL;
 
-typedef void* (APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
+typedef void* (GL_APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
 static PFNWGLGETPROCADDRESSPROC_PRIVATE gladGetProcAddressPtr;
 
 static int open_libgl(void) {
@@ -78,4 +79,5 @@ int %%SHORTNAME%%Init(GLADloadproc proc) {
 
 void load_procs(GLADloadproc proc) {
 %%LOADPROCS%%
+}
 }
