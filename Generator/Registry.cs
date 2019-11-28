@@ -447,6 +447,9 @@ namespace Generator {
 				[XmlAttribute("opcode")]
 				public ushort OpCode { get; set; }
 
+				/// <summary>
+				/// Arbitrary string (unused).
+				/// </summary>
 				[XmlAttribute("comment")]
 				public string Comment { get; set; }
 			}

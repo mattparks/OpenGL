@@ -6,8 +6,7 @@
 %%LICENSE%%
 */
 
-#include <GL/OpenGL.h>
-#include <functional>
+#include <%%HEADER_FILE%%>
 
 namespace %%name%% {
 #ifdef _WIN32
@@ -71,9 +70,9 @@ int %%name%%Init(%%NAME%%loadproc proc) {
 	return 0;
 }
 
-%%SOURCE_PFN%%
+%%GL_COMMANDS_PFN%%
 
 void load_procs(%%NAME%%loadproc proc) {
-%%LOADPROCS%%
+%%GL_COMMANDS_PROC%%
 }
 }

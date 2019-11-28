@@ -25,7 +25,7 @@
 
 namespace %%name%% {
 /* SECTION: GL type definitions. */
-%%TYPES%%
+%%GL_TYPEDEFS%%
 
 /* Loader functions */
 typedef void* (* %%NAME%%loadproc)(const char *name);
@@ -34,7 +34,7 @@ int %%name%%Init();
 int %%name%%Init(%%NAME%%loadproc);
 
 /* SECTION: GL API interface definitions. */
-%%HEADER_BODY%%
+%%GL_ENUMS_COMMANDS%%
 
 /* SECTION: OpenGL / OpenGL ES extension interface definitions. */
 }
