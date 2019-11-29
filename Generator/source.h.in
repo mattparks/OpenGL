@@ -1,9 +1,9 @@
 /*
 
-%%GENERATOR%%
+${GENERATOR}
 
 ------------------------------------------------------------------------
-%%LICENSE%%
+${LICENSE}
 */
 
 #pragma once
@@ -23,18 +23,18 @@
 #define GL_APICALL extern
 #endif
 
-namespace %%name%% {
+namespace ${name} {
 /* SECTION: GL type definitions. */
-%%GL_TYPEDEFS%%
+${GL_TYPEDEFS}
 
 /* Loader functions */
-typedef void* (* %%NAME%%loadproc)(const char *name);
+typedef void *(GL_APIENTRYP ${NAME}loadproc)(const char *name);
 
-int %%name%%Init();
-int %%name%%Init(%%NAME%%loadproc);
+int ${name}Init();
+int ${name}Init(${NAME}loadproc);
 
 /* SECTION: GL API interface definitions. */
-%%GL_ENUMS_COMMANDS%%
+${GL_ENUMS_COMMANDS}
 
 /* SECTION: OpenGL / OpenGL ES extension interface definitions. */
 }

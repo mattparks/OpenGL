@@ -53,20 +53,20 @@ namespace Generator {
 			string commandsPFN = "";
 			string commandsProc = "";
 			foreach (var feature in registry.Features.Where(f => f.Api == api && f.Number >= min && f.Number <= max)) {
-				//string section = $"#ifndef {feature.Name}\n#define {feature.Name} 1";
 				commandsAndEnums += $"#ifndef {feature.Name}\n#define {feature.Name} 1\n/* SECTION: GL enumerant (token) definitions. */\n";
+				commandsPFN += $"#ifdef {feature.Name}\n";
+				commandsProc += $"#ifdef {feature.Name}\n";
+
 				foreach (var enumName in feature.Requires.SelectMany(requires => requires.EnumNames)) {
 					var @enum = registry.Find(enumName);
 					commandsAndEnums += $"#define {@enum.Name} {@enum.Value}\n";
 				}
 
 				commandsAndEnums += "\n/* SECTION: GL command definitions. */\n";
-				commandsPFN += $"#ifdef {feature.Name}\n";
-				commandsProc += $"#ifdef {feature.Name}\n";
 				foreach (var commandName in feature.Requires.SelectMany(requires => requires.CommandNames)) {
 					var command = registry.Find(commandName);
-					var returnType = GlType(command.Prototype).TrimEnd();
 					var procName = $"PFN{command.Prototype.Name.ToUpper()}PROC";
+					var returnType = GlType(command.Prototype);
 					var paramsString = string.Join(", ", command.Params.Select(param =>
 						$"{GlType(param)} {param.Name}")
 					);
@@ -75,7 +75,7 @@ namespace Generator {
 
 					commandsPFN += $"{procName} {command.Prototype.Name} = nullptr;\n";
 
-					commandsProc += $"\t{command.Prototype.Name} = reinterpret_cast<{procName}>(proc(\"{command.Prototype.Name}\"));\n";
+					commandsProc += $"\t{command.Prototype.Name} = ({procName})proc(\"{command.Prototype.Name}\");\n";
 				}
 
 				commandsAndEnums += $"#endif /* {feature.Name} */\n";
@@ -88,8 +88,8 @@ namespace Generator {
 
 			Directory.CreateDirectory("include/" + api.ToUpper());
 			Directory.CreateDirectory("src");
-			Output("../../../source.h.template", $"include/{strings["HEADER_FILE"]}", strings);
-			Output("../../../source.cpp.template", $"src/{strings["SOURCE_FILE"]}", strings);
+			Output("../../../source.h.in", $"include/{strings["HEADER_FILE"]}", strings);
+			Output("../../../source.cpp.in", $"src/{strings["SOURCE_FILE"]}", strings);
 		}
 
 		private static void Output(string inPath, string outPath, IReadOnlyDictionary<string, string> strings) {
@@ -98,18 +98,18 @@ namespace Generator {
 
 			string line;
 			while ((line = input.ReadLine()) != null) {
-				output.WriteLine(Regex.Replace(line, @"%%(.*?)%%",
+				output.WriteLine(Regex.Replace(line, @"\$\{(.*?)\}",
 					match => strings.TryGetValue(match.Groups[1].Value, out string value) ? value : match.Value
 					));
 			}
 		}
 
 		private static string GlType(RegistryCommands.Command.Proto proto) {
-			return !string.IsNullOrEmpty(proto.PointerType) ? proto.PointerType : proto.Text[0];
+			return (!string.IsNullOrEmpty(proto.PointerType) ? proto.PointerType : proto.Text[0]).TrimEnd();
 		}
 
 		private static string GlType(RegistryCommands.Command.Param param) {
-			return !string.IsNullOrEmpty(param.PointerType) ? param.PointerType : param.Text[0];
+			return (!string.IsNullOrEmpty(param.PointerType) ? param.PointerType : param.Text[0]).TrimEnd();
 		}
 
 		private static void Download() {
