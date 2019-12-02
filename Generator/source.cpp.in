@@ -8,74 +8,59 @@ ${LICENSE}
 
 #include <${HEADER_FILE}>
 
-namespace ${name} {
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <Windows.h>
-
-#pragma comment(lib, "OpenGL32.lib")
-#pragma comment(lib, "glu32.lib")
-
-static HMODULE libGL;
-
-typedef void* (GL_APIENTRYP PFNWGLGETPROCADDRESSPROC_PRIVATE)(const char*);
-static PFNWGLGETPROCADDRESSPROC_PRIVATE ${name}GetProcAddressPtr;
-
-static int open_libgl() {
-    libGL = LoadLibraryW(L"opengl32.dll");
-    if (libGL != NULL) {
-        void (* tmp)(void);
-        tmp = (void(*)(void)) GetProcAddress(libGL, "wglGetProcAddress");
-        ${name}GetProcAddressPtr = (PFNWGLGETPROCADDRESSPROC_PRIVATE) tmp;
-        return ${name}GetProcAddressPtr != NULL;
-    }
-
-    return 0;
-}
-
-static void close_libgl() {
-    if (libGL != NULL) {
-        FreeLibrary((HMODULE) libGL);
-        libGL = NULL;
-    }
-}
-
-static void* get_proc(const char *namez) {
-    void* result = NULL;
-    if (libGL == NULL) return NULL;
-
-    if (result == NULL) {
-        result = (void*)GetProcAddress((HMODULE) libGL, namez);
-    }
-
-    return result;
-}
-
+#include <cassert>
+#include <tchar.h>
 #endif
 
-int ${name}Init() {
-    int status = 0;
+namespace impl {
+#ifdef _WIN32
+#pragma comment(lib, "opengl32.lib")
 
-	if (open_libgl()) {
-		status = ${name}Init(&get_proc);
-		close_libgl();
+gl::ProcAddress getProcAddress(const char *name) {
+	static auto module = LoadLibrary(_T("OPENGL32.DLL"));
+
+	// Prevent static linking of opengl32
+	static auto wglGetProcAddress_ = reinterpret_cast<void *(WINAPI *)(const char *)>((uintptr_t) ::GetProcAddress(module, "wglGetProcAddress"));
+	assert(wglGetProcAddress_ != nullptr);
+
+	auto procAddress = wglGetProcAddress_(name);
+	if (procAddress != nullptr) {
+		return reinterpret_cast<gl::ProcAddress>(procAddress);
 	}
 
-	return status;
+	procAddress = (void *) ::GetProcAddress(module, name);
+	return reinterpret_cast<gl::ProcAddress>(procAddress);
+}
+#else
+gl::ProcAddress getProcAddress(const char *name) {
+#ifdef SYSTEM_DARWIN
+	static auto library = dlopen("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", RTLD_LAZY);
+#else
+	static auto library = dlopen("libGL.so", RTLD_LAZY);
+#endif
+
+	assert(library != nullptr);
+
+	auto symbol = dlsym(library, name);
+	return reinterpret_cast<gl::ProcAddress>(symbol);
+}
+#endif
 }
 
-static void load_procs(${NAME}loadproc proc);
+namespace ${NAMESPACE} {
+GetProcAddress getProcAddress = nullptr;
 
-int ${name}Init(${NAME}loadproc proc) {
-	load_procs(proc);
-	return 0;
+void initialize(const GetProcAddress &resolver) {
+	if (resolver == nullptr)
+		getProcAddress = impl::getProcAddress;
+	else
+		getProcAddress = resolver;
 }
 
 ${GL_COMMANDS_PFN}
-
-void load_procs(${NAME}loadproc proc) {
-${GL_COMMANDS_PROC}
-}
 }

@@ -8,6 +8,8 @@ ${LICENSE}
 
 #pragma once
 
+#include <functional>
+
 #ifdef __gl_h_
 #error OpenGL header already included, remove this include
 #endif
@@ -23,15 +25,33 @@ ${LICENSE}
 #define GL_APICALL extern
 #endif
 
-namespace ${name} {
+#ifndef WINAPI
+#ifdef _WIN32
+#define WINAPI __stdcall
+#else
+#define WINAPI
+#endif
+#endif
+
+namespace ${NAMESPACE} {
 /* SECTION: GL type definitions. */
 ${GL_TYPEDEFS}
 
-/* Loader functions */
-typedef void *(GL_APIENTRYP ${NAME}loadproc)(const char *name);
+/**
+ * The generic pointer to an OpenGL function.
+ */
+using ProcAddress = void(*)();
 
-int ${name}Init();
-int ${name}Init(${NAME}loadproc);
+/**
+ * The signature for the getProcAddress function.
+ */
+using GetProcAddress = std::function<ProcAddress(const char*)>;
+
+/**
+ * Initalizes functions for the active OpenGL context.
+ * @param resolver
+ */
+void initialize(const GetProcAddress &resolver);
 
 /* SECTION: GL API interface definitions. */
 ${GL_ENUMS_COMMANDS}
