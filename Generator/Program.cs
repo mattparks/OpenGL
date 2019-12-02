@@ -9,6 +9,7 @@ using System.Xml.Serialization;
 namespace Generator {
 	internal class Program {
 		private static void Main(string[] args) {
+			Directory.SetCurrentDirectory(Directory.GetCurrentDirectory() + "/..");
 			Download();
 
 			Registry registry;
@@ -85,19 +86,20 @@ namespace Generator {
 
 			Directory.CreateDirectory("include/" + api.ToUpper());
 			Directory.CreateDirectory("src");
-			Output("../../../source.h.in", $"include/{strings["HEADER_FILE"]}", strings);
-			Output("../../../source.cpp.in", $"src/{strings["SOURCE_FILE"]}", strings);
+			Output("source.h.in", $"include/{strings["HEADER_FILE"]}", strings);
+			Output("source.cpp.in", $"src/{strings["SOURCE_FILE"]}", strings);
 		}
 
 		private static void Output(string inPath, string outPath, IReadOnlyDictionary<string, string> strings) {
-			using var input = new StreamReader(inPath);
-			using var output = new StreamWriter(outPath);
-
-			string line;
-			while ((line = input.ReadLine()) != null) {
-				output.WriteLine(Regex.Replace(line, @"\$\{(.*?)\}",
-					match => strings.TryGetValue(match.Groups[1].Value, out string value) ? value : match.Value
+			var input = new StreamReader(inPath);
+			
+			using (var output = new StreamWriter(outPath)) {
+				string line;
+				while ((line = input.ReadLine()) != null) {
+					output.WriteLine(Regex.Replace(line, @"\$\{(.*?)\}",
+						match => strings.TryGetValue(match.Groups[1].Value, out string value) ? value : match.Value
 					));
+				}
 			}
 		}
 
@@ -116,21 +118,21 @@ namespace Generator {
 		}
 
 		private static void Download() {
-			using var client = new WebClient();
+			using (var client = new WebClient()) {
+				Directory.CreateDirectory("xml");
+				if (!File.Exists("xml/egl.xml"))
+					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/egl.xml", "xml/egl.xml");
+				if (!File.Exists("xml/gl.xml"))
+					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml", "xml/gl.xml");
+				if (!File.Exists("xml/glx.xml"))
+					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/glx.xml", "xml/glx.xml");
+				if (!File.Exists("xml/wgl.xml"))
+					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/wgl.xml", "xml/wgl.xml");
 
-			Directory.CreateDirectory("xml");
-			if (!File.Exists("xml/egl.xml"))
-				client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/egl.xml", "xml/egl.xml");
-			if (!File.Exists("xml/gl.xml"))
-				client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml", "xml/gl.xml");
-			if (!File.Exists("xml/glx.xml"))
-				client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/glx.xml", "xml/glx.xml");
-			if (!File.Exists("xml/wgl.xml"))
-				client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/wgl.xml", "xml/wgl.xml");
-
-			Directory.CreateDirectory("include/KHR");
-			if (!File.Exists("include/KHR/khrplatform.h"))
-				client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", "include/KHR/khrplatform.h");
+				Directory.CreateDirectory("include/KHR");
+				if (!File.Exists("include/KHR/khrplatform.h"))
+					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", "include/KHR/khrplatform.h");
+			}
 		}
 	}
 

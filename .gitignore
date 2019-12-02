@@ -1,10 +1,5 @@
 packages/
-bin/
-obj/
-Debug/
-Release/
-Generator/bin/*
-Generator/obj/*
+Build/
 .vs/
 # macOS leaves these ._ files around
 ._*
