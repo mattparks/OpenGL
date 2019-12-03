@@ -11,9 +11,23 @@ ${LICENSE}
 #include <functional>
 
 #ifdef __gl_h_
-#error OpenGL header already included, remove this include
+#error OpenGL ES 1 header already included, remove this include
 #endif
 #define __gl_h_
+
+#ifdef __gl2_h_
+#error OpenGL ES 2 header already included, remove this include
+#endif
+#define __gl2_h_
+
+#ifdef __gl3_h_
+#error OpenGL ES 3 header already included, remove this include
+#endif
+#define __gl3_h_
+
+#ifdef _WIN32
+#define GL_APIENTRY __stdcall
+#endif
 
 #ifndef GL_APIENTRY
 #define GL_APIENTRY
@@ -23,14 +37,6 @@ ${LICENSE}
 #endif
 #ifndef GL_APICALL
 #define GL_APICALL extern
-#endif
-
-#ifndef WINAPI
-#ifdef _WIN32
-#define WINAPI __stdcall
-#else
-#define WINAPI
-#endif
 #endif
 
 namespace ${NAMESPACE} {
@@ -53,8 +59,5 @@ using GetProcAddress = std::function<ProcAddress(const char*)>;
  */
 void initialize(const GetProcAddress &resolver);
 
-/* SECTION: GL API interface definitions. */
 ${GL_ENUMS_COMMANDS}
-
-/* SECTION: OpenGL / OpenGL ES extension interface definitions. */
 }
