@@ -1,7 +1,9 @@
 packages/
-Build/
+Generator/bin/
+Generator/obj/
+Test/Build/
 .vs/
-# macOS leaves these ._ files around
+.DS_Store
 ._*
 *.obj
 *.log

@@ -19,30 +19,27 @@ namespace Generator {
 		}
 
 		private static void Main(string[] args) {
-			Directory.SetCurrentDirectory(Directory.GetCurrentDirectory() + "/..");
 			Download();
 
-			Registry registry;
+			Registry glRegistry;
 			using (var file = new StreamReader("xml/gl.xml")) {
 				var serializer = new XmlSerializer(typeof(Registry));
-				registry = (Registry)serializer.Deserialize(file);
+				glRegistry = (Registry)serializer.Deserialize(file);
 			}
-
-			Process(registry, "OpenGL", "gl", new List<Api> {
+			Process(glRegistry, "gl", "OpenGL", new List<Api> {
 				new Api("gl", 3.0)
 			});
-			Process(registry, "OpenGLES", "gles", new List<Api> {
+			Process(glRegistry, "gles", "OpenGLES", new List<Api> {
 				new Api("gles1", 1.0),
 				new Api("gles2", 2.0)
 			});
 		}
 
-		private static void Process(Registry registry, string outName, string space, IReadOnlyCollection<Api> apis) {
+		private static void Process(Registry registry, string shortname, string outName, IReadOnlyCollection<Api> apis) {
 			var strings = new Dictionary<string, string> {
 				{ "GENERATOR", $"{outName} loader generated tool at {DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffffffZ}" },
 				{ "LICENSE", registry.Comment },
-				{ "NAMESPACE", space },
-				{ "HEADER_FILE", $"{space.ToUpper()}/{outName}.h" },
+				{ "HEADER_FILE", $"{shortname.ToUpper()}/{outName}.h" },
 				{ "SOURCE_FILE", $"{outName}.cpp" }
 			};
 
@@ -80,7 +77,7 @@ namespace Generator {
 				foreach (var commandName in parentRequires.SelectMany(rs => rs.CommandNames.Where(c => !usedSymbols.Contains(c.Name)))) {
 					var command = registry.Find(commandName);
 					var name = command.Prototype.Name;
-					//var shortName = name.StartsWith("gl") ? name.Substring(2) : name;
+					//var nameGL = name.StartsWith("gl") ? name.Substring(2) : name;
 					var returnType = GlType(command.Prototype);
 					var paramsString = string.Join(", ", command.Params.Select(param =>
 						$"{GlType(param)} {param.Name}")
@@ -90,7 +87,7 @@ namespace Generator {
 					var paramTypes = string.Join(", ", command.Params.Select(GlType));
 					var paramNames = string.Join(", ", command.Params.Select(param => param.Name));
 					commandsPFN += $"{returnType} {name}({paramsString}) {{\n";
-					commandsPFN += $"\tstatic const auto {name}_ = reinterpret_cast<{returnType}(GL_APIENTRY *)({paramTypes})>(getProcAddress(\"{name}\"));\n";
+					commandsPFN += $"\tstatic const auto {name}_ = reinterpret_cast<{returnType}(GL_APIENTRYP)({paramTypes})>(getProcAddress(\"{name}\"));\n";
 					commandsPFN += $"\tassert({name}_ != nullptr);\n";
 					commandsPFN += $"\treturn {name}_({paramNames});\n}}\n";
 
@@ -111,10 +108,10 @@ namespace Generator {
 			strings.Add("GL_ENUMS_COMMANDS", commandsAndEnums);
 			strings.Add("GL_COMMANDS_PFN", commandsPFN);
 
-			Directory.CreateDirectory("include/" + space.ToUpper());
-			Directory.CreateDirectory("src");
-			Output($"{space}.h.in", $"include/{strings["HEADER_FILE"]}", strings);
-			Output($"{space}.cpp.in", $"src/{strings["SOURCE_FILE"]}", strings);
+			Directory.CreateDirectory("../../../Out/include/" + shortname.ToUpper());
+			Directory.CreateDirectory("../../../Out/src");
+			Output($"../../Files/{shortname}.h.in", $"../../../Out/include/{strings["HEADER_FILE"]}", strings);
+			Output($"../../Files/{shortname}.cpp.in", $"../../../Out/src/{strings["SOURCE_FILE"]}", strings);
 		}
 
 		private static void Output(string inPath, string outPath, IReadOnlyDictionary<string, string> strings) {
@@ -145,22 +142,22 @@ namespace Generator {
 		}
 
 		private static void Download() {
-			using (var client = new WebClient()) {
-				Directory.CreateDirectory("xml");
-				if (!File.Exists("xml/egl.xml"))
-					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/egl.xml", "xml/egl.xml");
-				if (!File.Exists("xml/gl.xml"))
-					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml", "xml/gl.xml");
-				if (!File.Exists("xml/glx.xml"))
-					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/glx.xml", "xml/glx.xml");
-				if (!File.Exists("xml/wgl.xml"))
-					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/wgl.xml", "xml/wgl.xml");
+            using (var client = new WebClient()) { 
+                Directory.CreateDirectory("xml");
+                if (!File.Exists("xml/egl.xml"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/egl.xml", "xml/egl.xml");
+                if (!File.Exists("xml/gl.xml"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml", "xml/gl.xml");
+                if (!File.Exists("xml/glx.xml"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/glx.xml", "xml/glx.xml");
+                if (!File.Exists("xml/wgl.xml"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/wgl.xml", "xml/wgl.xml");
 
-				Directory.CreateDirectory("include/KHR");
-				if (!File.Exists("include/KHR/khrplatform.h"))
-					client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", "include/KHR/khrplatform.h");
-			}
-		}
+                Directory.CreateDirectory("include/KHR");
+                if (!File.Exists("include/KHR/khrplatform.h"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", "include/KHR/khrplatform.h");
+            }
+        }
 	}
 
 }

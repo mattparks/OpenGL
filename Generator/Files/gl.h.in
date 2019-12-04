@@ -11,19 +11,9 @@ ${LICENSE}
 #include <functional>
 
 #ifdef __gl_h_
-#error OpenGL ES 1 header already included, remove this include
+#error OpenGL header already included, remove this include
 #endif
 #define __gl_h_
-
-#ifdef __gl2_h_
-#error OpenGL ES 2 header already included, remove this include
-#endif
-#define __gl2_h_
-
-#ifdef __gl3_h_
-#error OpenGL ES 3 header already included, remove this include
-#endif
-#define __gl3_h_
 
 #ifdef _WIN32
 #define GL_APIENTRY __stdcall
@@ -39,7 +29,7 @@ ${LICENSE}
 #define GL_APICALL extern
 #endif
 
-namespace ${NAMESPACE} {
+namespace gl {
 /* SECTION: GL type definitions. */
 ${GL_TYPEDEFS}
 

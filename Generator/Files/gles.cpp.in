@@ -1,0 +1,58 @@
+/*
+
+${GENERATOR}
+
+------------------------------------------------------------------------
+${LICENSE}
+*/
+
+#include <${HEADER_FILE}>
+
+#include <cassert>
+#include <dlfcn.h>
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
+namespace impl {
+#if defined(__APPLE__)
+gles::ProcAddress getProcAddress(const char *name) {
+	static auto bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengles"));
+	assert(bundle != NULL);
+	
+	CFRetain(bundle);
+	static auto bundleURL = CFBundleCopyBundleURL(bundle);
+
+	auto procname = CFStringCreateWithCString(kCFAllocatorDefault, name, kCFStringEncodingASCII);
+	auto symbol = CFBundleGetFunctionPointerForName(bundle, procname);
+	CFRelease(procname);
+	return reinterpret_cast<gles::ProcAddress>(symbol);
+}
+#elif defined(__ANDROID__)
+gles::ProcAddress getProcAddress(const char *name) {
+	static auto library = dlopen("libGLESv1_CM.so", RTLD_LAZY);
+	static auto library2 = dlopen("libGLESv2.so", RTLD_LAZY);
+	// libGLESv3.so
+	assert(library != nullptr);
+	assert(library2 != nullptr);
+
+	auto symbol = dlsym(library, name);
+	if (!symbol)
+		symbol = dlsym(library2, name);
+	return reinterpret_cast<gles::ProcAddress>(symbol);
+}
+#endif
+}
+
+namespace gles {
+GetProcAddress getProcAddress = nullptr;
+
+void initialize(const GetProcAddress &resolver) {
+	if (resolver == nullptr)
+		getProcAddress = impl::getProcAddress;
+	else
+		getProcAddress = resolver;
+}
+
+${GL_COMMANDS_PFN}
+}

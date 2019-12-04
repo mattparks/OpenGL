@@ -1,9 +1,15 @@
-file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
-file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/src")
-file(TOUCH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/src/OpenGL.cpp")
+project(OpenGL_Test LANGUAGES CXX CSharp)
 
-add_executable(Test Test.cpp "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/src/OpenGL.cpp")
-target_include_directories(Test PRIVATE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
+set(CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
+set(CMAKE_CSharp_FLAGS "/langversion:7.1")
+
+include(GNUInstallDirs)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+
+add_executable(OpenGL_Test Test.cpp "${CMAKE_CURRENT_SOURCE_DIRECTORY}/../Out/src/OpenGL.cpp")
+target_include_directories(OpenGL_Test PRIVATE "${CMAKE_CURRENT_SOURCE_DIRECTORY}/../Out/include")
 
 find_package(glfw3 CONFIG)
-target_link_libraries(Test PRIVATE glfw)
+target_link_libraries(OpenGL_Test PRIVATE glfw)

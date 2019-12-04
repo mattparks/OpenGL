@@ -1,0 +1,93 @@
+/*
+
+${GENERATOR}
+
+------------------------------------------------------------------------
+${LICENSE}
+*/
+
+#include <${HEADER_FILE}>
+
+#include <cassert>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#ifndef UNICODE
+#define UNICODE 1
+#endif
+#include <Windows.h>
+#include <tchar.h>
+#else
+#include <dlfcn.h>
+#endif
+
+namespace impl {
+#ifdef _WIN32
+#pragma comment(lib, "opengl32.lib")
+
+gl::ProcAddress getProcAddress(const char *name) {
+	static auto module = LoadLibrary(L"OPENGL32.DLL");
+
+	// Prevent static linking of opengl32
+	static auto wglGetProcAddress_ = reinterpret_cast<void *(GL_APIENTRYP)(const char *)>((uintptr_t) ::GetProcAddress(module, "wglGetProcAddress"));
+	assert(wglGetProcAddress_ != nullptr);
+
+	auto procAddress = wglGetProcAddress_(name);
+	if (procAddress != nullptr) {
+		return reinterpret_cast<gl::ProcAddress>(procAddress);
+	}
+
+	procAddress = (void *) ::GetProcAddress(module, name);
+	return reinterpret_cast<gl::ProcAddress>(procAddress);
+}
+#else
+void *LoadLibraryGL() {
+#ifdef __APPLE__
+	static const char *NAMES[] = {
+		"../Frameworks/OpenGL.framework/OpenGL",
+		"/Library/Frameworks/OpenGL.framework/OpenGL",
+		"/System/Library/Frameworks/OpenGL.framework/OpenGL",
+		"/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL"
+	};
+#else
+	static const char *NAMES[] = {"libGL.so.1", "libGL.so"};
+#endif
+    for (unsigned int i = 0; i < (sizeof(NAMES) / sizeof(NAMES[0])); i++) {
+		if (auto libGL = dlopen(NAMES[i], RTLD_NOW | RTLD_GLOBAL); libGL) {
+			return libGL;
+        }
+    }
+	return nullptr;
+}
+
+gl::ProcAddress getProcAddress(const char *name) {
+	static auto library = LoadLibraryGL();
+	assert(library != nullptr);
+
+	void *procAddress = nullptr;
+#if !defined(__APPLE__) && !defined(__HAIKU__)
+	static auto glXGetProcAddress_ = reinterpret_cast<void *(GL_APIENTRYP)(const char *)>(dlsym(library, "glXGetProcAddressARB"));
+	
+	if (glXGetProcAddress_)
+		procAddress = glXGetProcAddress_(name);
+#endif
+	if (!procAddress)
+		procAddress = dlsym(library, name);
+	return reinterpret_cast<gl::ProcAddress>(procAddress);
+}
+#endif
+}
+
+namespace gl {
+GetProcAddress getProcAddress = nullptr;
+
+void initialize(const GetProcAddress &resolver) {
+	if (resolver == nullptr)
+		getProcAddress = impl::getProcAddress;
+	else
+		getProcAddress = resolver;
+}
+
+${GL_COMMANDS_PFN}
+}
