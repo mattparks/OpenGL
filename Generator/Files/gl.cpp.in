@@ -80,13 +80,18 @@ gl::ProcAddress getProcAddress(const char *name) {
 }
 
 namespace gl {
-GetProcAddress getProcAddress = nullptr;
+GetProcAddress getProcAddress_ = nullptr;
 
 void initialize(const GetProcAddress &resolver) {
-	if (resolver == nullptr)
-		getProcAddress = impl::getProcAddress;
+    if (!resolver)
+		getProcAddress_ = impl::getProcAddress;
 	else
-		getProcAddress = resolver;
+		getProcAddress_ = resolver;
+}
+
+ProcAddress getProcAddress(const char *name) {
+    assert(getProcAddress_ != nullptr);
+    return getProcAddress_(name);
 }
 
 ${GL_COMMANDS_PFN}

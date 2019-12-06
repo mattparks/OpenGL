@@ -1,6 +1,6 @@
 /*
 
-OpenGL loader generated tool at 2019-12-04T00:06:22.5285910Z
+OpenGL loader generated tool at 2019-12-04T16:43:23.9041010Z
 
 ------------------------------------------------------------------------
 
@@ -117,6 +117,25 @@ using GetProcAddress = std::function<ProcAddress(const char*)>;
  * @param resolver
  */
 void initialize(const GetProcAddress &resolver);
+
+/**
+ * Gets a pointer to a OpenGL function.
+ * @param name The function name.
+ * @return The function pointer.
+ */
+ProcAddress getProcAddress(const char *name);
+
+/**
+ * Gets a OpenGL function matching a calling signature.
+ * @tparam R The functions return type.
+ * @tparam Args The function call parameters.
+ * @param name The function name.
+ * @return The function.
+ */
+template<typename R, typename ...Params>
+auto getFunction(const char *name) {
+    return reinterpret_cast<R(GL_APIENTRYP)(Params...)>(getProcAddress(name));
+}
 
 #ifndef GL_VERSION_1_0
 #define GL_VERSION_1_0 1

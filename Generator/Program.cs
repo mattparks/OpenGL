@@ -18,7 +18,11 @@ namespace Generator {
 			}
 		}
 
-		private static void Main(string[] args) {
+        static string IncludeDir = "../../../Out/include";
+        static string SourceDir = "../../../Out/src";
+        static string FilesDir = "../../Files";
+
+        private static void Main(string[] args) {
 			Download();
 
 			Registry glRegistry;
@@ -87,7 +91,7 @@ namespace Generator {
 					var paramTypes = string.Join(", ", command.Params.Select(GlType));
 					var paramNames = string.Join(", ", command.Params.Select(param => param.Name));
 					commandsPFN += $"{returnType} {name}({paramsString}) {{\n";
-					commandsPFN += $"\tstatic const auto {name}_ = reinterpret_cast<{returnType}(GL_APIENTRYP)({paramTypes})>(getProcAddress(\"{name}\"));\n";
+					commandsPFN += $"\tstatic const auto {name}_ = getFunction<{returnType}{(paramTypes.Length != 0 ? ", " : "")}{paramTypes}>(\"{name}\");\n";
 					commandsPFN += $"\tassert({name}_ != nullptr);\n";
 					commandsPFN += $"\treturn {name}_({paramNames});\n}}\n";
 
@@ -108,13 +112,14 @@ namespace Generator {
 			strings.Add("GL_ENUMS_COMMANDS", commandsAndEnums);
 			strings.Add("GL_COMMANDS_PFN", commandsPFN);
 
-			Directory.CreateDirectory("../../../Out/include/" + shortname.ToUpper());
-			Directory.CreateDirectory("../../../Out/src");
-			Output($"../../Files/{shortname}.h.in", $"../../../Out/include/{strings["HEADER_FILE"]}", strings);
-			Output($"../../Files/{shortname}.cpp.in", $"../../../Out/src/{strings["SOURCE_FILE"]}", strings);
+			Directory.CreateDirectory($"{IncludeDir}/" + shortname.ToUpper());
+			Directory.CreateDirectory($"{SourceDir}");
+			Output($"{FilesDir}/{shortname}.h.in", $"{IncludeDir}/{strings["HEADER_FILE"]}", strings);
+			Output($"{FilesDir}/{shortname}.cpp.in", $"{SourceDir}/{strings["SOURCE_FILE"]}", strings);
 		}
 
-		private static void Output(string inPath, string outPath, IReadOnlyDictionary<string, string> strings) {
+
+        private static void Output(string inPath, string outPath, IReadOnlyDictionary<string, string> strings) {
 			var input = new StreamReader(inPath);
 			
 			using (var output = new StreamWriter(outPath)) {
@@ -153,9 +158,9 @@ namespace Generator {
                 if (!File.Exists("xml/wgl.xml"))
                     client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/wgl.xml", "xml/wgl.xml");
 
-                Directory.CreateDirectory("include/KHR");
-                if (!File.Exists("include/KHR/khrplatform.h"))
-                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", "include/KHR/khrplatform.h");
+                Directory.CreateDirectory($"{IncludeDir}/KHR");
+                if (!File.Exists($"{IncludeDir}/KHR/khrplatform.h"))
+                    client.DownloadFile("https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/master/api/KHR/khrplatform.h", $"{IncludeDir}/KHR/khrplatform.h");
             }
         }
 	}

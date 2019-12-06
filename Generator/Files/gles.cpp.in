@@ -45,13 +45,18 @@ gles::ProcAddress getProcAddress(const char *name) {
 }
 
 namespace gles {
-GetProcAddress getProcAddress = nullptr;
+GetProcAddress getProcAddress_ = nullptr;
 
 void initialize(const GetProcAddress &resolver) {
-	if (resolver == nullptr)
-		getProcAddress = impl::getProcAddress;
-	else
-		getProcAddress = resolver;
+    if (!resolver)
+        getProcAddress_ = impl::getProcAddress;
+    else
+        getProcAddress_ = resolver;
+}
+
+ProcAddress getProcAddress(const char *name) {
+    assert(getProcAddress_ != nullptr);
+    return getProcAddress_(name);
 }
 
 ${GL_COMMANDS_PFN}
